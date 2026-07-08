@@ -2,13 +2,24 @@
 
 A local demo chatbot focused on US history — text and voice chat, saved conversations, and a custom PDF knowledge base.
 
+## Current features (Phases 1–5 — complete)
+
+- Text chat with US history focus (Google Gemini)
+- Multiple saved chats with sidebar
+- Voice input: Start / Stop / Delete / Send
+- Voice output: Speak (TTS) on assistant messages
+- Replay user voice recordings (Play button)
+- PDF knowledge base — answers blend PDF content with general US history
+- **Demo visuals** — left-side US flag accent, historical gallery in header
+- Local storage under `data/chats/`
+
 ## Documentation
 
 | Doc | Description |
 |-----|-------------|
 | **[docs/setup.md](docs/setup.md)** | **Start here** — full setup for your machine and your friend's laptop |
 | **[docs/plan.md](docs/plan.md)** | Requirements, architecture, and phased build plan |
-| **[docs/implementation.md](docs/implementation.md)** | What has been built so far (Phase 1 status) |
+| **[docs/implementation.md](docs/implementation.md)** | What has been built (all 5 phases complete) |
 
 ## Quick start (after setup)
 
@@ -27,7 +38,11 @@ cd frontend
 npm run dev
 ```
 
-Open http://localhost:5173 in Chrome or Edge.
+Open http://localhost:5173 in **Chrome or Edge** (required for voice).
+
+You should see a **Knowledge base** badge in the header if a PDF is in `knowledge/`.
+
+To stop either server, press **Ctrl+C** in its terminal.
 
 See **[docs/implementation.md](docs/implementation.md)** for current feature status.
 
@@ -44,6 +59,6 @@ Get a free API key: https://aistudio.google.com/apikey
 
 ## Tech stack
 
-- **Frontend:** React + Vite
+- **Frontend:** React + Vite (Web Speech API for voice)
 - **Backend:** Python FastAPI
 - **LLM:** Google Gemini (`gemini-2.5-flash`)

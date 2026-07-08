@@ -37,7 +37,7 @@ The app has two parts that run locally:
 You also need:
 
 - **Internet** — for Gemini API calls (free tier)
-- **Chrome or Edge** — recommended browser (required for voice features in Phase 3)
+- **Chrome or Edge** — required for voice input/output (Phase 3+)
 
 Chats, audio recordings, and PDF files stay **on the local disk** — not in the cloud.
 
@@ -299,21 +299,28 @@ Or open http://localhost:8000/docs and try the chat endpoint from Swagger.
 
 ---
 
-## Add the US history PDF (Phase 4+)
-
-Once Phase 4 is implemented:
+## Add the US history PDF
 
 1. Place your friend's PDF in the `knowledge/` folder:
 
 ```
-ChatBot/knowledge/us-history-notes.pdf
+ChatBot/knowledge/The Wilmington Coup of 1898.pdf
 ```
 
-2. Restart the backend (Ctrl+C in backend terminal, then run `uvicorn` again)
-3. The app will load and chunk the PDF on startup or first request
-4. Ask questions about topics covered in the PDF
+(Any filename works — the first `.pdf`, `.txt`, or `.md` found is loaded.)
+
+2. Start or restart the backend — the PDF is loaded automatically on startup
+3. Confirm the header shows: **Knowledge base: your-file.pdf (N chunks)**
+4. Ask questions about topics in the PDF, e.g. *"What happened in the Wilmington Coup of 1898?"*
+
+**To replace the PDF later:**
+
+1. Swap the file in `knowledge/`
+2. Reload via http://localhost:8000/docs → `POST /api/knowledge/reload`, or restart the backend
 
 **If the PDF is scanned (images only):** text extraction may fail. Ask for a text-based PDF or a `.txt`/`.md` export.
+
+> **Note:** `knowledge/` is gitignored — PDFs stay local. Copy the file manually when setting up your friend's laptop.
 
 ---
 
@@ -340,9 +347,16 @@ Then open http://localhost:5173 in Chrome or Edge.
 
 ## Stopping the app
 
-In each terminal window, press **Ctrl+C** to stop the server.
+In each terminal window where a server is running, press **Ctrl+C** to stop it.
 
-Your saved chats remain in `data/chats/` on disk.
+If port 8000 remains in use:
+
+```powershell
+netstat -ano | findstr :8000
+taskkill /PID <pid> /F
+```
+
+Your saved chats and audio remain in `data/chats/` on disk.
 
 ---
 
@@ -395,17 +409,21 @@ Another app is using the port. Either close that app or change the port:
 - Allow microphone permission when the browser prompts
 - Windows Settings → Privacy → Microphone → allow desktop apps
 - Microphone requires **HTTPS or localhost** — localhost is fine
+- Voice input uses **Start / Stop / Delete / Send** controls — click **Start** to begin, **Stop** when done, review transcription, then **Send**
 
-### Voice output not working
+### Voice output (Phase 3+)
 
-- Click the **speaker/play** button on the assistant message (manual mode)
-- Check system volume and browser tab is not muted
+- Assistant replies are **text only** — click the **speaker icon** on a message to hear it read aloud
+- User voice recordings can be replayed with the **play icon** on user messages
+- Uses browser built-in speech synthesis (no extra API key needed)
 
-### PDF knowledge base not affecting answers (Phase 4+)
+### PDF knowledge base not affecting answers
 
 - Confirm file is in `knowledge/` folder
-- Restart backend after adding the PDF
-- Try a question that mentions content unique to the PDF
+- Check header badge shows filename and chunk count > 0
+- Restart backend or call `POST /api/knowledge/reload`
+- Ask about a topic specific to the PDF content
+- If `chunk_count` is 0, the PDF may be scanned/image-only — try a text export
 
 ---
 
@@ -451,7 +469,8 @@ Print or follow this list when setting up a new machine:
 - [ ] Frontend: `npm install`
 - [ ] Start backend (`uvicorn`) and frontend (`npm run dev`)
 - [ ] Open http://localhost:5173 and send a test message
-- [ ] (Later) Add PDF to `knowledge/` folder
+- [ ] Test voice: Start → speak → Stop → Send; click **Speak** on reply; click **Play** on user message
+- [ ] Add PDF to `knowledge/` folder; confirm badge in header; ask a PDF-specific question
 
 ---
 
@@ -459,4 +478,8 @@ Print or follow this list when setting up a new machine:
 
 | Date | Change |
 |------|--------|
+| 2026-07-08 | Phase 5 visual polish (side flag, history gallery) |
+| 2026-07-08 | Phase 4 verified (PDF knowledge base, Wilmington Coup sample) |
+| 2026-07-08 | Phase 3 verified (voice input/output, audio persistence) |
+| 2026-07-08 | Phase 2 verified; Phase 3 voice UX documented (Start/Stop/Delete/Send) |
 | 2026-07-08 | Initial setup guide; Gemini model set to `gemini-2.5-flash` after API verification |

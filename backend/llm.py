@@ -6,6 +6,21 @@ from config import GEMINI_API_KEY, GEMINI_MODEL, SYSTEM_PROMPT
 ROLE_MAP = {"user": "user", "assistant": "model"}
 
 
+def build_system_prompt(context_chunks: list[str] | None = None) -> str:
+    if not context_chunks:
+        return SYSTEM_PROMPT
+
+    material = "\n\n---\n\n".join(context_chunks)
+    return f"""{SYSTEM_PROMPT}
+
+Reference material from the knowledge base (use when relevant to the user's question):
+---
+{material}
+---
+
+When reference material is relevant, prioritize details from it. Blend it with your general US history knowledge when helpful. If the question is not covered in the reference, answer from general US history knowledge."""
+
+
 def _configure() -> None:
     if not GEMINI_API_KEY:
         raise ValueError("GEMINI_API_KEY is not set. Copy .env.example to .env and add your key.")
@@ -21,7 +36,7 @@ def _to_gemini_history(messages: list[dict]) -> list[dict]:
     return history
 
 
-def chat(messages: list[dict]) -> str:
+def chat(messages: list[dict], context_chunks: list[str] | None = None) -> str:
     if not messages:
         raise ValueError("At least one message is required.")
     if messages[-1]["role"] != "user":
@@ -29,9 +44,11 @@ def chat(messages: list[dict]) -> str:
 
     _configure()
 
+    system_instruction = build_system_prompt(context_chunks)
+
     model = genai.GenerativeModel(
         GEMINI_MODEL,
-        system_instruction=SYSTEM_PROMPT,
+        system_instruction=system_instruction,
         safety_settings={
             HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
             HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_ONLY_HIGH,

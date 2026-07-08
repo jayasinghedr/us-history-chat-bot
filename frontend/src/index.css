@@ -4,13 +4,16 @@
   box-sizing: border-box;
 }
 
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
   margin: 0;
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-  background: #f0f2f5;
+  background: linear-gradient(135deg, #eef2f7 0%, #f8fafc 45%, #eef2f7 100%);
   color: #1a1a2e;
-}
-
-#root {
-  min-height: 100vh;
 }

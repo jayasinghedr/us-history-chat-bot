@@ -8,10 +8,10 @@
 ## Implementation Checklist
 
 - [x] **Phase 1:** Scaffold React + FastAPI, wire LLM chat endpoint, basic chat UI
-- [ ] **Phase 2:** Multi-chat CRUD, local file storage, chat list sidebar
-- [ ] **Phase 3:** Web Speech API input/output, save/replay audio blobs
-- [ ] **Phase 4:** PDF ingestion, chunk retrieval, inject into LLM context
-- [ ] **Phase 5:** US flag backdrop, historical images, demo-ready styling
+- [x] **Phase 2:** Multi-chat CRUD, local file storage, chat list sidebar
+- [x] **Phase 3:** Web Speech API input/output, save/replay audio blobs
+- [x] **Phase 4:** PDF ingestion, chunk retrieval, inject into LLM context
+- [x] **Phase 5:** US flag backdrop, historical images, demo-ready styling
 
 ---
 
@@ -22,9 +22,11 @@
 | **Super Grok subscription** | Does **not** include API access. It only unlocks features in the Grok app (X/Twitter). Not needed for this project. |
 | **LLM provider** | **Google Gemini free API**. Default model: **`gemini-2.5-flash`** (verified working on free tier). API key from [aistudio.google.com/apikey](https://aistudio.google.com/apikey). No credit card required. |
 | **API key storage** | Store in `.env` as `GEMINI_API_KEY`. Gitignore `.env` and `API_key.txt`. Each laptop should use its own key (see [setup.md](./setup.md)). |
-| **Knowledge base format** | Friend has a **PDF**. We'll support PDF ingestion; if extraction quality is poor, fallback to `.txt`/`.md` is fine. |
+| **Knowledge base format** | Friend has a **PDF**. Single file in `knowledge/` folder. Sample: `The Wilmington Coup of 1898.pdf` (may be replaced later). Fallback to `.txt`/`.md` if extraction fails. |
 | **Knowledge base behavior** | **Blend** — general US history knowledge plus friend's PDF material when relevant. Not PDF-only. |
 | **Voice output UX** | **Manual** — speaker/play button on each assistant message (no auto-speak on every reply). |
+| **Voice input UX (Phase 3)** | **Start / Stop / Delete / Send** — user controls recording, reviews transcription, then sends manually. |
+| **Audio storage (Phase 3)** | Save **user voice recordings** only. Assistant replies stay **text**; use browser TTS on play (no assistant audio files). |
 | **Tech stack** | **React + Vite** frontend, **Python FastAPI** backend — confirmed. |
 | **Deployment target** | Local demo on Windows — developer machine first, then friend's laptop (full setup in [setup.md](./setup.md)). |
 
@@ -133,41 +135,52 @@ flowchart LR
 - `POST /api/chats` — create new chat
 - `GET /api/chats` — list saved chats
 - `GET /api/chats/{id}` — load messages
-- `POST /api/chats/{id}/messages` — append user + assistant messages
+- `POST /api/chats/{id}/messages` — save full conversation
 - Auto-save after each exchange
 - UI: "New Chat" button + sidebar list of past chats
-- **Exit criteria:** Two separate conversations persist after restart
+- Frontend fetch timeout (15s) and error handling for unreachable backend
+- **Exit criteria:** Two separate conversations persist after restart — **verified**
 
 ### Phase 3 — Voice Input & Output
 
 **Goal:** Talk to the bot and hear replies spoken aloud.
 
-- Mic button → Web Speech API → transcribed text → send as normal message
-- Store raw audio blob alongside the message in `data/chats/{id}/audio/`
-- Speaker/play button on each assistant message → `speechSynthesis` (manual, not auto-play)
-- Playback button on saved messages to replay stored audio
-- **Exit criteria:** Voice question → text reply → spoken reply; reload chat and replay audio
+- **Voice input controls:** Start, Stop, Delete, Send buttons
+  - **Start** — begin recording + speech-to-text (Web Speech API)
+  - **Stop** — end recording; show transcribed text for review
+  - **Delete** — discard recording and transcription
+  - **Send** — submit the transcribed text as a normal user message
+- Store **user** audio blob in `data/chats/{id}/audio/` alongside the message
+- **Assistant replies remain text** in the chat bubble (no assistant audio files saved)
+- Speaker/play button on each assistant message → browser `speechSynthesis` (manual)
+- Playback button on user messages to replay saved voice recording
+- Backend dependency: `python-multipart` (for audio upload)
+- **Exit criteria:** Record → stop → send → text reply → click Speak to hear reply; reload chat and replay user audio — **verified**
 
 ### Phase 4 — PDF Knowledge Base
 
 **Goal:** Friend's PDF content influences answers.
 
-- Drop PDF into `knowledge/` folder
+- Drop PDF into `knowledge/` folder (current sample: `The Wilmington Coup of 1898.pdf` — replaceable later)
 - Backend extracts text (e.g. `pypdf`), splits into chunks
 - On each question: retrieve top 3–5 relevant chunks → append to system prompt
 - Optional: simple admin note in UI showing "Knowledge base loaded: N chunks"
 - Fallback: if PDF extraction is messy, friend provides `.txt`/`.md` instead (same pipeline)
-- **Exit criteria:** Ask about something **only in the PDF** — bot answers using that material
+- **Exit criteria:** Ask about something **only in the PDF** — bot answers using that material — **verified**
+
+**PDF pre-check (sample file):** Text extraction verified — 1 page, readable text (not scanned). Loads as 4 chunks.
 
 ### Phase 5 — Visual Polish
 
 **Goal:** Make the demo presentable.
 
-- US flag as subtle page backdrop (CSS, low opacity)
-- 2–3 historical images (public domain from Wikimedia) in header or sidebar
+- US flag as subtle **left-side accent strip** (CSS, low opacity)
+- 2 historical images (public domain from Wikimedia) in header gallery
 - Title branding: e.g. "US History Chat"
 - Responsive layout cleanup
-- **Exit criteria:** Looks intentional for a demo presentation
+- **Exit criteria:** Looks intentional for a demo presentation — pending user verification
+
+**Visual decisions:** General US history gallery images; US flag accent on the **left side** (fixed strip); assets in `frontend/public/images/`.
 
 ---
 
@@ -189,7 +202,8 @@ ChatBot/
 │   ├── storage.py       # chat file I/O
 │   └── knowledge.py     # PDF load + retrieval
 ├── data/chats/          # persisted sessions (gitignored)
-├── knowledge/           # friend's PDF goes here
+├── knowledge/           # PDF knowledge base (gitignored — local only)
+│   └── The Wilmington Coup of 1898.pdf   # sample; replaceable
 ├── .env                 # GEMINI_API_KEY (gitignored)
 ├── .env.example         # GEMINI_API_KEY placeholder
 └── README.md            # quick pointer to docs/setup.md

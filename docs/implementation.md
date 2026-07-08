@@ -2,7 +2,7 @@
 
 What has been built so far for the US History Chatbot demo.
 
-> **Last updated:** Phase 1 complete  
+> **Last updated:** Phase 5 complete  
 > **Related docs:** [plan.md](./plan.md) · [setup.md](./setup.md)
 
 ---
@@ -12,10 +12,143 @@ What has been built so far for the US History Chatbot demo.
 | Phase | Status | Description |
 |-------|--------|-------------|
 | **Phase 1** | **Done** | Core text chat — React UI + FastAPI backend + Gemini API |
-| Phase 2 | Not started | Multi-chat and local persistence |
-| Phase 3 | Not started | Voice input/output |
-| Phase 4 | Not started | PDF knowledge base |
-| Phase 5 | Not started | Visual polish (flag backdrop, images) |
+| **Phase 2** | **Done** | Multi-chat and local file persistence |
+| **Phase 3** | **Done** | Voice input (Start/Stop/Delete/Send) and text-to-speech output — **verified** |
+| **Phase 4** | **Done** | PDF knowledge base — load, chunk, retrieve, inject into prompts — **verified** |
+| **Phase 5** | **Done** | Visual polish — side flag, history gallery, demo-ready layout |
+
+---
+
+## Phase 5 — What Works
+
+### Visual features
+
+- **Left-side US flag accent** — fixed vertical strip with subtle opacity
+- **History gallery** in header — Declaration of Independence and Abraham Lincoln artwork
+- **Polished header card** — title, tagline, knowledge base badge
+- **Refined panels** — semi-transparent sidebar and chat window on gradient background
+- **Responsive** — narrower side flag and stacked layout on mobile
+
+### Assets (`frontend/public/images/`)
+
+| File | Source |
+|------|--------|
+| `us-flag.svg` | Wikimedia Commons (US flag) |
+| `declaration.jpg` | John Trumbull, Declaration of Independence (Wikimedia Commons) |
+| `lincoln.jpg` | Abraham Lincoln portrait (Wikimedia Commons) |
+
+See `frontend/public/images/README.md` for replacing placeholders with photo thumbnails.
+
+---
+
+## Phase 4 — What Works
+
+### User-facing features
+
+- **Knowledge base badge** in header when a PDF is loaded (filename + chunk count)
+- Answers **blend** general US history with content from the PDF when relevant
+- Asking about topics in the PDF (e.g. Wilmington Coup of 1898) uses that material
+
+### Backend features
+
+- Loads first `.pdf`, `.txt`, or `.md` from `knowledge/` on startup
+- Extracts text with `pypdf` (PDF) or plain read (txt/md)
+- Splits into overlapping chunks (~600 chars)
+- Keyword retrieval — top 5 relevant chunks appended to system prompt per question
+- `GET /api/knowledge/status` — load status
+- `POST /api/knowledge/reload` — re-read files after replacing PDF (no full restart needed)
+
+### Current sample file
+
+- `knowledge/The Wilmington Coup of 1898.pdf` — 4 chunks loaded
+
+### Test question
+
+> *"What happened in the Wilmington Coup of 1898?"*
+
+### Verified (Phase 4)
+
+- Knowledge base badge shows in header (`The Wilmington Coup of 1898.pdf`, 4 chunks)
+- PDF-specific questions answered using material from the knowledge base
+- General US history questions still work (blend mode)
+- Replace PDF + `POST /api/knowledge/reload` reloads without code changes
+
+---
+
+## Phase 3 — What Works
+
+### User-facing features
+
+- **Voice controls:** Start, Stop, Delete, Send buttons above the text input
+- **Start** — records microphone audio + live speech-to-text transcription
+- **Stop** — ends recording; transcription shown for review
+- **Delete** — discards recording and transcription
+- **Send** — submits transcribed text as a user message (with audio saved if recorded)
+- **Play** button on user messages — replays saved voice recording
+- **Speak** button on assistant messages — reads reply aloud via browser text-to-speech (manual)
+- Assistant replies remain **text only** (no assistant audio files)
+
+### Backend features
+
+- `POST /api/chats/{id}/audio` — upload user audio (`.webm`)
+- `GET /api/chats/{id}/audio/{filename}` — stream saved recording
+- Messages may include optional `audio_file` field in `messages.json`
+- Audio stored under `data/chats/{id}/audio/`
+
+### Storage layout (with audio)
+
+```
+data/chats/{chatId}/
+├── meta.json
+├── messages.json
+└── audio/
+    └── {uuid}.webm
+```
+
+### Verified (Phase 3)
+
+- Start / Stop / Delete / Send voice workflow works in Chrome/Edge
+- User audio saved and **Play** button replays recording after page refresh
+- **Speak** button reads assistant replies aloud via browser TTS
+- Assistant responses remain text-only (no assistant audio files on disk)
+
+---
+
+## Phase 2 — What Works
+
+### User-facing features
+
+- **+ New Chat** button — starts a fresh conversation (not saved until first message)
+- **Sidebar** — lists all saved chats, sorted by most recently updated
+- **Switch chats** — click a chat in the sidebar to load its history
+- **Auto-save** — after each exchange, messages are saved to disk
+- **Persist on refresh** — reloading the browser restores saved chats
+- **Auto-titled chats** — title is taken from the first user message (truncated at 60 chars)
+
+### Backend features
+
+- Local file storage under `data/chats/{chatId}/`
+  - `meta.json` — id, title, created_at, updated_at
+  - `messages.json` — full message history with timestamps
+- Chat CRUD API endpoints (see API section below)
+- UUID validation on chat IDs (prevents path traversal)
+- Request timeout (15s) — shows error instead of infinite "Loading chats…"
+
+### Verified (Phase 2)
+
+- Sidebar lists saved chats; switching between them works
+- New chats auto-title from first message
+- Data persists after page refresh
+- Backend hang on port 8000 documented in Known Issues (restart if API times out)
+
+### Storage layout example
+
+```
+data/chats/
+└── d279a231-3289-4e9a-ab47-df26ceb949d1/
+    ├── meta.json
+    └── messages.json
+```
 
 ---
 
@@ -41,46 +174,38 @@ What has been built so far for the US History Chatbot demo.
 - CORS enabled for the Vite dev server
 - Health check endpoint for verification
 
-### Verified
+### Verified (Phase 1)
 
 - API test: *"Who was the first US president?"* → correct answer about George Washington
 - Manual UI test: *"When did the US railroads start?"* → detailed answer about B&O railroad (1828)
 
 ---
 
-## Phase 1 — What Does NOT Work Yet
+## What Does NOT Work Yet
 
-These are planned for later phases:
+| Feature | Status |
+|---------|--------|
+| Delete chat | Not planned (out of scope) |
 
-| Feature | Phase |
-|---------|-------|
-| New chat / multiple conversations | Phase 2 |
-| Saved chats (persist after refresh) | Phase 2 |
-| Chat list sidebar | Phase 2 |
-| Voice input (microphone) | Phase 3 |
-| Voice output (text-to-speech) | Phase 3 |
-| Saved audio recordings | Phase 3 |
-| Friend's PDF knowledge base | Phase 4 |
-| US flag backdrop and historical images | Phase 5 |
-
-**Current limitation:** Refreshing the browser **clears the conversation**. Messages exist only in React state (in memory).
+**All planned demo phases (1–5) are implemented.**
 
 ---
 
-## Architecture (Phase 1)
+## Architecture
 
 ```mermaid
 sequenceDiagram
     participant Browser as React UI
-    participant Vite as Vite Dev Server
     participant API as FastAPI Backend
+    participant Disk as data/chats/
     participant Gemini as Google Gemini API
 
-    Browser->>Vite: POST /api/chat
-    Vite->>API: proxy to localhost:8000
-    API->>Gemini: generateContent / chat
+    Browser->>API: POST /api/chat
+    API->>Gemini: generate reply
     Gemini-->>API: assistant reply
     API-->>Browser: JSON response
+    Browser->>API: POST /api/chats/{id}/messages
+    API->>Disk: save meta.json + messages.json
 ```
 
 ---
@@ -92,20 +217,29 @@ ChatBot/
 ├── backend/
 │   ├── main.py           # FastAPI app, routes, CORS
 │   ├── llm.py            # Gemini client and chat logic
+│   ├── storage.py        # Chat file I/O (data/chats/)
 │   ├── config.py         # .env loading, system prompt
 │   ├── requirements.txt  # Python dependencies
 │   └── .venv/            # Python virtual environment (local, not committed)
+├── data/chats/           # Saved conversations (gitignored)
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx               # Page layout and header
-│   │   ├── App.css               # Chat UI styles
+│   │   ├── App.jsx               # Layout, chat list state, routing
+│   │   ├── App.css               # Chat UI + sidebar styles
 │   │   ├── main.jsx              # React entry point
 │   │   ├── index.css             # Global styles
 │   │   ├── api/
-│   │   │   └── client.js         # fetch wrapper for /api/chat
+│   │   │   └── client.js         # API client (chat, persistence, audio upload)
+│   │   ├── utils/
+│   │   │   └── speech.js         # Speech recognition + TTS helpers
 │   │   └── components/
-│   │       ├── ChatWindow.jsx    # Chat state, input form, message list
-│   │       └── MessageBubble.jsx # Single message bubble
+│   │       ├── ChatWindow.jsx    # Input form, voice controls, auto-save
+│   │       ├── ChatList.jsx      # Sidebar with saved chats
+│   │       ├── VoiceControls.jsx # Start / Stop / Delete / Send
+│   │       └── MessageBubble.jsx # Message bubble with Play / Speak
+│   ├── public/
+│   │   ├── favicon.svg
+│   │   └── favicon.ico
 │   ├── index.html
 │   ├── package.json
 │   └── vite.config.js    # Dev server + API proxy
@@ -187,30 +321,157 @@ For multi-turn chat, include the full history:
 
 ---
 
+### `POST /api/chats`
+
+Create a new chat session. Returns a UUID only — nothing is written to disk until the first message is saved.
+
+**Response:**
+
+```json
+{ "id": "d279a231-3289-4e9a-ab47-df26ceb949d1" }
+```
+
+---
+
+### `GET /api/chats`
+
+List all saved chats, sorted by most recently updated.
+
+**Response:**
+
+```json
+[
+  {
+    "id": "d279a231-3289-4e9a-ab47-df26ceb949d1",
+    "title": "When did the US railroads start?",
+    "created_at": "2026-07-08T15:00:00+00:00",
+    "updated_at": "2026-07-08T15:01:00+00:00"
+  }
+]
+```
+
+---
+
+### `GET /api/chats/{id}`
+
+Load a single chat with full message history.
+
+**Response:**
+
+```json
+{
+  "id": "d279a231-3289-4e9a-ab47-df26ceb949d1",
+  "title": "When did the US railroads start?",
+  "created_at": "2026-07-08T15:00:00+00:00",
+  "updated_at": "2026-07-08T15:01:00+00:00",
+  "messages": [
+    { "role": "user", "content": "When did the US railroads start?" },
+    { "role": "assistant", "content": "US railroads began in the early 19th century..." }
+  ]
+}
+```
+
+---
+
+### `POST /api/chats/{id}/messages`
+
+Save the full conversation to disk. Called automatically after each exchange.
+
+**Request body:**
+
+```json
+{
+  "messages": [
+    { "role": "user", "content": "Who was Lincoln?", "audio_file": "abc-123.webm" },
+    { "role": "assistant", "content": "Abraham Lincoln was the 16th president..." }
+  ]
+}
+```
+
+**Response:** Same as `GET /api/chats/{id}`.
+
+---
+
+### `POST /api/chats/{id}/audio`
+
+Upload a user voice recording (multipart form).
+
+**Form field:** `file` — audio blob (`.webm`)
+
+**Response:**
+
+```json
+{ "filename": "d279a231-3289-4e9a-ab47-df26ceb949d1.webm" }
+```
+
+---
+
+### `GET /api/chats/{id}/audio/{filename}`
+
+Stream a saved user recording.
+
+**Response:** `audio/webm` file
+
+---
+
+### `GET /api/knowledge/status`
+
+Knowledge base load status.
+
+**Response:**
+
+```json
+{
+  "loaded": true,
+  "filename": "The Wilmington Coup of 1898.pdf",
+  "chunk_count": 4,
+  "error": null
+}
+```
+
+---
+
+### `POST /api/knowledge/reload`
+
+Re-scan `knowledge/` and reload chunks (use after replacing the PDF).
+
+**Response:** Same as `GET /api/knowledge/status`.
+
+---
+
 ## Frontend Components
 
 ### `App.jsx`
 
-- Page header: "US History Chat"
-- Renders `ChatWindow`
+- Page header, chat list sidebar, and active chat routing
+- Loads saved chats on startup; handles new chat creation
 
 ### `ChatWindow.jsx`
 
-- Holds `messages` state (in memory only)
-- Handles form submit → calls `sendChat()` → appends reply
-- Shows loading and error states
-- Auto-scrolls to bottom on new messages
+- Text input and voice controls
+- Sends messages to LLM; auto-saves conversation + audio references
+- Shows loading and error states; auto-scrolls to latest message
+
+### `VoiceControls.jsx`
+
+- **Start / Stop / Delete / Send** buttons for voice input
+- Uses Web Speech API (transcription) + MediaRecorder (audio capture)
+- Requires Chrome or Edge
 
 ### `MessageBubble.jsx`
 
-- Renders a single user or assistant message
-- User messages: right-aligned, dark blue
-- Assistant messages: left-aligned, light grey
+- Renders user or assistant message
+- **Play** button on user messages (if audio was recorded)
+- **Speak** button on assistant messages (browser text-to-speech)
 
 ### `api/client.js`
 
-- `sendChat(messages)` — POST to `/api/chat`
-- Uses Vite proxy (no hardcoded backend URL in dev)
+- `sendChat`, `listChats`, `getChat`, `saveChatMessages`, `uploadAudio`
+- 15-second request timeout with clear error messages
+
+### `utils/speech.js`
+
+- Helpers for speech recognition, text-to-speech, and browser capability checks
 
 ---
 
@@ -264,6 +525,8 @@ Get a free key: https://aistudio.google.com/apikey
 | `uvicorn` | ASGI server |
 | `google-generativeai` | Gemini SDK |
 | `python-dotenv` | Load `.env` file |
+| `python-multipart` | Audio file upload support |
+| `pypdf` | PDF text extraction for knowledge base |
 
 ### Frontend (`frontend/package.json`)
 
@@ -302,12 +565,13 @@ Open http://localhost:5173
 
 | Issue | Notes |
 |-------|-------|
-| Port 8000 in use | Stop other processes: `netstat -ano \| findstr :8000` then `taskkill /PID <pid> /F` |
+| Port 8000 stuck / API times out | Multiple uvicorn instances can wedge the port. Run `netstat -ano \| findstr :8000` then `taskkill /PID <pid> /F`, restart backend once |
 | WinError 10013 on port 8000 | Usually means port already occupied |
-| Conversation lost on refresh | Expected until Phase 2 |
+| "Loading chats…" forever | Backend not responding — restart it; frontend now times out after 15s with an error |
 | Internet required | Gemini API calls need network access |
 | Gemini 429 errors | Free tier rate limits; wait and retry, or confirm `GEMINI_MODEL=gemini-2.5-flash` |
 | Deprecation warning | `google.generativeai` package shows a deprecation notice; still works for this demo |
+| Voice features | Require Chrome or Edge; allow microphone permission when prompted |
 
 ---
 
@@ -324,17 +588,12 @@ Open http://localhost:5173
 
 ---
 
-## Next Up: Phase 2
+## Project complete
 
-Planned work:
+All five planned demo phases are implemented. Optional future enhancements (not in scope):
 
-- `POST /api/chats` — create new chat
-- `GET /api/chats` — list saved chats
-- `GET /api/chats/{id}` — load messages
-- `POST /api/chats/{id}/messages` — save messages
-- Local file storage under `data/chats/`
-- UI: **New Chat** button + sidebar chat list
-- Auto-save after each exchange
-- Chat titles from first user message
+- Delete chat button
+- Dark mode
+- Replace gallery SVG placeholders with Wikimedia photo thumbnails
 
-See [plan.md](./plan.md) for full Phase 2 spec.
+See [plan.md](./plan.md) for the full project history.
