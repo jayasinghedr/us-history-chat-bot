@@ -1,25 +1,26 @@
 # US History Chatbot
 
-A local demo chatbot focused on US history — text and voice chat, saved conversations, and a custom PDF knowledge base.
+A local demo chatbot focused on US history — text and voice chat, saved conversations, PDF knowledge base, and a polished demo UI.
 
-## Current features (Phases 1–5 — complete)
+## Features
 
-- Text chat with US history focus (Google Gemini)
-- Multiple saved chats with sidebar
-- Voice input: Start / Stop / Delete / Send
-- Voice output: Speak (TTS) on assistant messages
-- Replay user voice recordings (Play button)
-- PDF knowledge base — answers blend PDF content with general US history
-- **Demo visuals** — left-side US flag accent, historical gallery in header
-- Local storage under `data/chats/`
+- **Text chat** with US history focus (Google Gemini `gemini-2.5-flash`)
+- **Multiple saved chats** — sidebar, auto-save, auto-titles, delete with confirmation modal
+- **ChatGPT-style layout** — scrollable message history, input bar fixed at bottom
+- **Markdown replies** — bold, lists, and other formatting rendered in assistant messages
+- **Voice input** — mic button reveals icon-based controls (record, stop, delete, send)
+- **Voice output** — Speak (TTS) on assistant messages; Play on user recordings
+- **PDF knowledge base** — answers blend PDF content with general US history
+- **Demo visuals** — US flag header background, historical images flanking the title
+- **Local storage** — chats and audio under `data/chats/`
 
 ## Documentation
 
 | Doc | Description |
 |-----|-------------|
-| **[docs/setup.md](docs/setup.md)** | **Start here** — full setup for your machine and your friend's laptop |
+| **[docs/setup.md](docs/setup.md)** | **Start here** — install, configure, run, and use the app |
 | **[docs/plan.md](docs/plan.md)** | Requirements, architecture, and phased build plan |
-| **[docs/implementation.md](docs/implementation.md)** | What has been built (all 5 phases complete) |
+| **[docs/implementation.md](docs/implementation.md)** | Technical reference — API, components, file layout |
 
 ## Quick start (after setup)
 
@@ -40,15 +41,13 @@ npm run dev
 
 Open http://localhost:5173 in **Chrome or Edge** (required for voice).
 
-You should see a **Knowledge base** badge in the header if a PDF is in `knowledge/`.
+Press **Ctrl+C** in each terminal to stop the servers.
 
-To stop either server, press **Ctrl+C** in its terminal.
-
-See **[docs/implementation.md](docs/implementation.md)** for current feature status.
+See **[docs/setup.md](docs/setup.md)** for first-time setup and full usage instructions.
 
 ## Configuration
 
-Copy `.env.example` to `.env` and set:
+Copy `.env.example` to `.env` in the project root:
 
 ```env
 GEMINI_API_KEY=your-key-here
@@ -59,6 +58,6 @@ Get a free API key: https://aistudio.google.com/apikey
 
 ## Tech stack
 
-- **Frontend:** React + Vite (Web Speech API for voice)
+- **Frontend:** React + Vite, react-markdown, react-icons, Web Speech API
 - **Backend:** Python FastAPI
 - **LLM:** Google Gemini (`gemini-2.5-flash`)

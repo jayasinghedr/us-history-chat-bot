@@ -1,8 +1,8 @@
-# US History Chatbot — Setup Guide
+# US History Chatbot — Setup & Usage Guide
 
-Complete setup instructions for running the app on **your machine** or **your friend's laptop** (Windows). Read this top-to-bottom the first time; use the [Quick start](#quick-start-after-initial-setup) section for daily use.
+Complete instructions for installing, running, and using the app on **your machine** or **your friend's laptop** (Windows). Read this top-to-bottom the first time; use [Quick start](#quick-start-after-initial-setup) for daily use.
 
-> **Related docs:** [plan.md](./plan.md) — project requirements and phased build plan.
+> **Related docs:** [plan.md](./plan.md) — requirements and architecture · [implementation.md](./implementation.md) — technical details and API reference
 
 ---
 
@@ -15,13 +15,15 @@ Complete setup instructions for running the app on **your machine** or **your fr
 5. [Transfer the project to another laptop](#transfer-the-project-to-another-laptop)
 6. [Project setup (first time)](#project-setup-first-time)
 7. [Configure the API key](#configure-the-api-key)
-8. [Run the application](#run-the-application)
-9. [Verify everything works](#verify-everything-works)
-10. [Add the US history PDF (Phase 4+)](#add-the-us-history-pdf-phase-4)
-11. [Quick start (after initial setup)](#quick-start-after-initial-setup)
-12. [Stopping the app](#stopping-the-app)
-13. [Troubleshooting](#troubleshooting)
-14. [FAQ](#faq)
+8. [Add the US history PDF (optional)](#add-the-us-history-pdf-optional)
+9. [Run the application](#run-the-application)
+10. [Using the app](#using-the-app)
+11. [Verify everything works](#verify-everything-works)
+12. [Quick start (after initial setup)](#quick-start-after-initial-setup)
+13. [Stopping the app](#stopping-the-app)
+14. [Troubleshooting](#troubleshooting)
+15. [FAQ](#faq)
+16. [Setup checklist (new machine)](#setup-checklist-new-machine)
 
 ---
 
@@ -32,14 +34,17 @@ The app has two parts that run locally:
 | Part | Technology | Default URL | Purpose |
 |------|------------|-------------|---------|
 | **Frontend** | React + Vite | http://localhost:5173 | Chat UI in the browser |
-| **Backend** | Python FastAPI | http://localhost:8000 | Talks to Gemini API, saves chats |
+| **Backend** | Python FastAPI | http://localhost:8000 | Talks to Gemini API, saves chats, loads PDF |
 
 You also need:
 
 - **Internet** — for Gemini API calls (free tier)
-- **Chrome or Edge** — required for voice input/output (Phase 3+)
+- **Chrome or Edge** — required for voice input (microphone + speech recognition)
 
-Chats, audio recordings, and PDF files stay **on the local disk** — not in the cloud.
+**Stored locally on disk (not in the cloud):**
+
+- Saved chats and voice recordings → `data/chats/`
+- PDF knowledge base → `knowledge/`
 
 ---
 
@@ -50,7 +55,7 @@ Chats, audio recordings, and PDF files stay **on the local disk** — not in the
 | **Windows** | 10 or 11 | These instructions target Windows |
 | **Node.js** | 18+ | For the frontend |
 | **Python** | 3.10+ | For the backend |
-| **Browser** | Chrome or Edge | Firefox/Safari work for text chat; voice works best in Chrome/Edge |
+| **Browser** | Chrome or Edge | Voice input requires Chrome or Edge; text chat works in other browsers |
 | **Gemini API key** | Free | From Google AI Studio — no credit card |
 | **Disk space** | ~500 MB | Node/Python packages + chat data |
 
@@ -122,7 +127,7 @@ Other models (e.g. `gemini-2.0-flash`, `gemini-2.5-pro`) may return **429 quota 
 
 ### Test the key (optional)
 
-From the project folder, after creating `.env` (see below), or run this one-liner in PowerShell (replace `YOUR_KEY`):
+After creating `.env` (see below), run this in PowerShell (replace `YOUR_KEY`):
 
 ```powershell
 python -c "import urllib.request,json; key='YOUR_KEY'; url=f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={key}'; body=json.dumps({'contents':[{'parts':[{'text':'Say OK'}]}]}).encode(); req=urllib.request.Request(url,data=body,headers={'Content-Type':'application/json'}); print(json.loads(urllib.request.urlopen(req).read())['candidates'][0]['content']['parts'][0]['text'])"
@@ -143,24 +148,29 @@ Pick one method:
 
 1. On your machine, zip the entire `ChatBot` folder
 2. **Exclude** (do not copy):
-   - `node_modules/` (if present — will be reinstalled)
-   - `backend/.venv/` or any virtualenv folder
-   - `.env` and `API_key.txt` (friend creates their own key)
+   - `node_modules/` (reinstalled with `npm install`)
+   - `backend/.venv/` (recreated with `python -m venv`)
+   - `.env` (friend creates their own key)
 3. Copy the zip to your friend's laptop and extract (e.g. `C:\Users\Friend\Projects\ChatBot`)
 
 ### Option B — Git repository
 
-1. Push the project to GitHub/GitLab (ensure `.env` and `API_key.txt` are in `.gitignore`)
+1. Push the project to GitHub/GitLab (ensure `.env` is in `.gitignore`)
 2. On friend's laptop:
 
 ```powershell
-git clone <repository-url>
-cd ChatBot
+git clone https://github.com/jayasinghedr/us-history-chat-bot.git
+cd us-history-chat-bot
 ```
 
 ### Option C — Cloud folder (OneDrive, Google Drive)
 
 Same rules as ZIP — exclude `node_modules`, virtualenv, and secret files.
+
+**Also copy manually (gitignored):**
+
+- `knowledge/` — if you want the same PDF on the other laptop
+- `data/chats/` — only if you want to transfer saved conversations
 
 ---
 
@@ -230,9 +240,39 @@ GEMINI_MODEL=gemini-2.5-flash
 ### Security checklist
 
 - [ ] `.env` is listed in `.gitignore`
-- [ ] `API_key.txt` is listed in `.gitignore` (if you use it)
 - [ ] API key is not pasted in chat, screenshots, or public repos
 - [ ] Friend creates their own key on their laptop (recommended)
+
+---
+
+## Add the US history PDF (optional)
+
+The app blends **general US history knowledge** with content from a local PDF when relevant.
+
+1. Create the `knowledge/` folder if it does not exist
+2. Place your PDF inside:
+
+```
+ChatBot/knowledge/The Wilmington Coup of 1898.pdf
+```
+
+(Any filename works — the first `.pdf`, `.txt`, or `.md` found is loaded.)
+
+3. Start or restart the backend — the file is loaded automatically on startup
+
+**Verify the PDF loaded:**
+
+- Open http://localhost:8000/api/knowledge/status
+- You should see `"loaded": true` and a `chunk_count` greater than 0
+
+**To replace the PDF later:**
+
+1. Swap the file in `knowledge/`
+2. Call `POST /api/knowledge/reload` from http://localhost:8000/docs, or restart the backend
+
+**If the PDF is scanned (images only):** text extraction may fail (`chunk_count: 0`). Ask for a text-based PDF or a `.txt`/`.md` export.
+
+> **Note:** `knowledge/` is gitignored — copy the PDF manually when setting up another laptop.
 
 ---
 
@@ -275,8 +315,73 @@ Leave this terminal open.
 
 1. Open **Chrome** or **Edge**
 2. Go to http://localhost:5173
-3. Type a question, e.g. *"Who was the first US president?"*
-4. You should get a reply within a few seconds
+3. The app loads your most recent chat, or starts a new one if none exist
+
+---
+
+## Using the app
+
+### Text chat
+
+1. Type a question in the input bar at the bottom, e.g. *"Who was the first US president?"*
+2. Click the **send icon** (paper plane) or press **Enter**
+3. The assistant reply appears as a **Historian** message
+4. **Scroll up** in the message area to read older messages — the input bar stays fixed at the bottom
+5. Assistant replies support **markdown** formatting (bold, lists, etc.)
+
+### Multiple chats
+
+| Action | How |
+|--------|-----|
+| **New chat** | Click **+ New Chat** in the left sidebar |
+| **Switch chat** | Click a chat title in the sidebar |
+| **Delete chat** | Hover a chat → click the **trash icon** → confirm in the dialog |
+| **Auto-save** | Each exchange is saved automatically to disk |
+| **Auto-title** | Chat titles come from the first user message (truncated at 60 characters) |
+
+Deleting a chat removes it permanently (messages and any voice recordings). If you delete the active chat, the app switches to another chat or creates a new one.
+
+### Voice input
+
+Voice input requires **Chrome or Edge** and microphone permission.
+
+1. Click the **microphone icon** next to the send button — the voice control bar appears above the input
+2. Click the **mic icon** in the voice bar to **start recording**
+3. Speak your question
+4. Click the **stop icon** when finished — your transcription appears for review
+5. Click the **send icon** in the voice bar to submit (or **trash icon** to discard)
+6. Click the **microphone icon** again to hide the voice bar
+
+Your voice recording is saved with the message. After sending, click **Play** on your message bubble to replay it.
+
+### Voice output (text-to-speech)
+
+- Assistant replies are **text only** on screen
+- Click **Speak** on a Historian message to hear it read aloud (browser text-to-speech)
+- No extra API key needed for TTS
+
+### PDF knowledge base
+
+When a PDF is loaded in `knowledge/`, answers blend general US history with PDF content when relevant.
+
+**Example questions (with Wilmington Coup PDF):**
+
+- *"What happened in the Wilmington Coup of 1898?"*
+- *"Tell me about significant events connected to Wilmington, North Carolina"*
+
+General questions still work without the PDF:
+
+- *"What caused the American Civil War?"*
+- *"Who was Abraham Lincoln?"*
+
+### Suggested demo flow
+
+1. Ask a general US history question
+2. Ask something specific to the PDF (if loaded)
+3. Start a **new chat** — show the previous one is still in the sidebar
+4. Use **voice input** to ask a question, then **Speak** on the reply
+5. Refresh the page — chats and recordings persist
+6. Delete an old chat from the sidebar
 
 ---
 
@@ -289,38 +394,23 @@ Leave this terminal open.
 | Backend running | http://localhost:8000/docs shows FastAPI Swagger UI |
 | Frontend running | http://localhost:5173 loads the chat page |
 | API key works | Send a message and receive an AI reply |
+| Chats persist | Refresh the page — sidebar still shows saved chats |
+| PDF loaded (optional) | http://localhost:8000/api/knowledge/status shows `loaded: true` |
+| Voice (optional) | Mic icon → record → stop → send → Play on user message |
 | Internet | Gemini calls fail offline — ensure Wi‑Fi is on |
 
 ### Backend health check
 
-Visit: http://localhost:8000/api/health (if implemented in Phase 1)
+Visit: http://localhost:8000/api/health
 
-Or open http://localhost:8000/docs and try the chat endpoint from Swagger.
+Expected:
 
----
-
-## Add the US history PDF
-
-1. Place your friend's PDF in the `knowledge/` folder:
-
+```json
+{
+  "status": "ok",
+  "model": "gemini-2.5-flash"
+}
 ```
-ChatBot/knowledge/The Wilmington Coup of 1898.pdf
-```
-
-(Any filename works — the first `.pdf`, `.txt`, or `.md` found is loaded.)
-
-2. Start or restart the backend — the PDF is loaded automatically on startup
-3. Confirm the header shows: **Knowledge base: your-file.pdf (N chunks)**
-4. Ask questions about topics in the PDF, e.g. *"What happened in the Wilmington Coup of 1898?"*
-
-**To replace the PDF later:**
-
-1. Swap the file in `knowledge/`
-2. Reload via http://localhost:8000/docs → `POST /api/knowledge/reload`, or restart the backend
-
-**If the PDF is scanned (images only):** text extraction may fail. Ask for a text-based PDF or a `.txt`/`.md` export.
-
-> **Note:** `knowledge/` is gitignored — PDFs stay local. Copy the file manually when setting up your friend's laptop.
 
 ---
 
@@ -356,7 +446,7 @@ netstat -ano | findstr :8000
 taskkill /PID <pid> /F
 ```
 
-Your saved chats and audio remain in `data/chats/` on disk.
+Your saved chats and audio remain in `data/chats/` on disk until you delete them from the app.
 
 ---
 
@@ -382,8 +472,15 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 Another app is using the port. Either close that app or change the port:
 
-- Backend: `uvicorn main:app --reload --port 8001` (and update frontend API URL if needed)
+- Backend: `uvicorn main:app --reload --port 8001`
 - Frontend: `npm run dev -- --port 5174`
+
+### "Loading chats…" never finishes
+
+1. Check the backend terminal for errors
+2. Confirm backend is running on port 8000
+3. If port is stuck: `netstat -ano | findstr :8000` then `taskkill /PID <pid> /F`
+4. Restart the backend once
 
 ### Chat returns an error / no response
 
@@ -398,32 +495,37 @@ Another app is using the port. Either close that app or change the port:
 - Regenerate key at https://aistudio.google.com/apikey
 - Update `.env` with no extra spaces or quotes around the key
 
-### Frontend can't reach backend (CORS / network error)
+### Frontend can't reach backend
 
 - Ensure backend is running on port 8000
-- Use http://localhost:5173 (not `127.0.0.1` mismatch issues are rare but try localhost consistently)
+- Use http://localhost:5173 consistently
 
-### Microphone not working (Phase 3+)
+### Microphone / voice input not working
 
-- Use **Chrome** or **Edge**
+- Use **Chrome** or **Edge** (not Firefox/Safari for recording)
 - Allow microphone permission when the browser prompts
 - Windows Settings → Privacy → Microphone → allow desktop apps
-- Microphone requires **HTTPS or localhost** — localhost is fine
-- Voice input uses **Start / Stop / Delete / Send** controls — click **Start** to begin, **Stop** when done, review transcription, then **Send**
+- Click the **mic icon** next to send to open the voice bar first
+- Microphone works on **localhost** without HTTPS
 
-### Voice output (Phase 3+)
+### Voice output (Speak button) not working
 
-- Assistant replies are **text only** — click the **speaker icon** on a message to hear it read aloud
-- User voice recordings can be replayed with the **play icon** on user messages
-- Uses browser built-in speech synthesis (no extra API key needed)
+- Uses browser built-in speech synthesis
+- Try Chrome or Edge
+- Check system volume and that no other app is using audio output
 
 ### PDF knowledge base not affecting answers
 
 - Confirm file is in `knowledge/` folder
-- Check header badge shows filename and chunk count > 0
+- Check http://localhost:8000/api/knowledge/status — `chunk_count` should be > 0
 - Restart backend or call `POST /api/knowledge/reload`
 - Ask about a topic specific to the PDF content
 - If `chunk_count` is 0, the PDF may be scanned/image-only — try a text export
+
+### Markdown shows as raw text (`**bold**`)
+
+- Hard-refresh the browser (Ctrl+Shift+R) after updating the frontend
+- Rebuild if needed: `cd frontend` then `npm run build`
 
 ---
 
@@ -435,7 +537,7 @@ No. Gemini API free tier + local app = no payment required for a demo.
 
 ### Can we use the same API key on two laptops?
 
-Technically yes, but **not recommended** — each person should create their own free key. Shared keys are harder to revoke if leaked and share the same rate limits.
+Technically yes, but **not recommended** — each person should create their own free key. Shared keys share the same rate limits and are harder to revoke if leaked.
 
 ### Does the app work offline?
 
@@ -443,7 +545,16 @@ Partially. The UI and saved chats work offline, but **new AI replies require int
 
 ### Where are chats stored?
 
-Locally under `ChatBot/data/chats/`. Copy this folder to back up or move chats to another machine.
+Locally under `ChatBot/data/chats/`. Each chat has:
+
+```
+data/chats/{chat-id}/
+├── meta.json       # title, dates
+├── messages.json   # conversation history
+└── audio/          # voice recordings (if any)
+```
+
+Copy this folder to back up or move chats to another machine.
 
 ### Which browser should we use for the demo?
 
@@ -453,11 +564,15 @@ Locally under `ChatBot/data/chats/`. Copy this folder to back up or move chats t
 
 Update `GEMINI_MODEL` in `.env`. Check https://ai.google.dev/gemini-api/docs/models for current model names.
 
+### Can I delete a chat by accident?
+
+Yes — deletion is permanent after you confirm in the dialog. There is no undo.
+
 ---
 
-## Setup checklist (friend's laptop)
+## Setup checklist (new machine)
 
-Print or follow this list when setting up a new machine:
+Use this when setting up a fresh laptop:
 
 - [ ] Install Node.js LTS — verify `node --version`
 - [ ] Install Python 3.10+ — verify `python --version`
@@ -465,12 +580,14 @@ Print or follow this list when setting up a new machine:
 - [ ] Create Gemini API key at https://aistudio.google.com/apikey
 - [ ] Copy `.env.example` → `.env` and paste API key
 - [ ] Set `GEMINI_MODEL=gemini-2.5-flash`
-- [ ] Backend: create venv, `pip install -r requirements.txt`
+- [ ] Backend: `python -m venv .venv`, activate, `pip install -r requirements.txt`
 - [ ] Frontend: `npm install`
+- [ ] (Optional) Copy PDF into `knowledge/` folder
 - [ ] Start backend (`uvicorn`) and frontend (`npm run dev`)
 - [ ] Open http://localhost:5173 and send a test message
-- [ ] Test voice: Start → speak → Stop → Send; click **Speak** on reply; click **Play** on user message
-- [ ] Add PDF to `knowledge/` folder; confirm badge in header; ask a PDF-specific question
+- [ ] Test voice: mic icon → record → stop → send; Speak on reply; Play on user message
+- [ ] Test delete: trash icon on a chat → confirm in modal
+- [ ] (Optional) Verify PDF at http://localhost:8000/api/knowledge/status
 
 ---
 
@@ -478,8 +595,5 @@ Print or follow this list when setting up a new machine:
 
 | Date | Change |
 |------|--------|
-| 2026-07-08 | Phase 5 visual polish (side flag, history gallery) |
-| 2026-07-08 | Phase 4 verified (PDF knowledge base, Wilmington Coup sample) |
-| 2026-07-08 | Phase 3 verified (voice input/output, audio persistence) |
-| 2026-07-08 | Phase 2 verified; Phase 3 voice UX documented (Start/Stop/Delete/Send) |
-| 2026-07-08 | Initial setup guide; Gemini model set to `gemini-2.5-flash` after API verification |
+| 2026-07-09 | Finalized docs: usage guide, icon-based voice UI, delete chat modal, markdown replies, header layout |
+| 2026-07-08 | Phase 5 visual polish; Phase 4 PDF knowledge base; Phase 3 voice; initial setup guide |

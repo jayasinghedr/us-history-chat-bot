@@ -11,7 +11,7 @@
 - [x] **Phase 2:** Multi-chat CRUD, local file storage, chat list sidebar
 - [x] **Phase 3:** Web Speech API input/output, save/replay audio blobs
 - [x] **Phase 4:** PDF ingestion, chunk retrieval, inject into LLM context
-- [x] **Phase 5:** US flag backdrop, historical images, demo-ready styling
+- [x] **Phase 5:** US flag backdrop, historical images, demo-ready styling — **verified**
 
 ---
 
@@ -25,7 +25,7 @@
 | **Knowledge base format** | Friend has a **PDF**. Single file in `knowledge/` folder. Sample: `The Wilmington Coup of 1898.pdf` (may be replaced later). Fallback to `.txt`/`.md` if extraction fails. |
 | **Knowledge base behavior** | **Blend** — general US history knowledge plus friend's PDF material when relevant. Not PDF-only. |
 | **Voice output UX** | **Manual** — speaker/play button on each assistant message (no auto-speak on every reply). |
-| **Voice input UX (Phase 3)** | **Start / Stop / Delete / Send** — user controls recording, reviews transcription, then sends manually. |
+| **Voice input UX** | **Mic toggle + icons** — mic button next to send reveals voice bar; icon buttons for record/stop/delete/send (see [setup.md](./setup.md#voice-input)). |
 | **Audio storage (Phase 3)** | Save **user voice recordings** only. Assistant replies stay **text**; use browser TTS on play (no assistant audio files). |
 | **Tech stack** | **React + Vite** frontend, **Python FastAPI** backend — confirmed. |
 | **Deployment target** | Local demo on Windows — developer machine first, then friend's laptop (full setup in [setup.md](./setup.md)). |
@@ -174,13 +174,15 @@ flowchart LR
 
 **Goal:** Make the demo presentable.
 
-- US flag as subtle **left-side accent strip** (CSS, low opacity)
-- 2 historical images (public domain from Wikimedia) in header gallery
-- Title branding: e.g. "US History Chat"
-- Responsive layout cleanup
-- **Exit criteria:** Looks intentional for a demo presentation — pending user verification
+- US flag as subtle **header background** (not full-page)
+- 2 historical images flanking the title in the header
+- Title branding: "US History Chat"
+- ChatGPT-style scroll layout (messages scroll, input fixed at bottom)
+- Markdown rendering in assistant replies
+- Delete chat with confirmation modal
+- **Exit criteria:** Looks intentional for a demo presentation — **verified**
 
-**Visual decisions:** General US history gallery images; US flag accent on the **left side** (fixed strip); assets in `frontend/public/images/`.
+**Visual decisions:** General US history gallery images on either side of the title; US flag as header card background; assets in `frontend/public/images/`.
 
 ---
 
@@ -189,24 +191,26 @@ flowchart LR
 ```
 ChatBot/
 ├── docs/
-│   ├── plan.md          # this file
-│   └── setup.md         # full setup guide (both laptops)
-├── frontend/            # React + Vite SPA
+│   ├── plan.md              # this file
+│   ├── setup.md             # install, run, and usage guide
+│   └── implementation.md    # technical reference
+├── frontend/                # React + Vite SPA
+│   ├── public/images/       # flag + historical images
 │   └── src/
 │       ├── App.jsx
-│       ├── components/  # ChatWindow, ChatList, MessageBubble, VoiceControls
+│       ├── components/      # ChatWindow, ChatList, VoiceControls, etc.
 │       └── api/client.js
 ├── backend/
-│   ├── main.py          # FastAPI routes
-│   ├── llm.py           # Gemini client
-│   ├── storage.py       # chat file I/O
-│   └── knowledge.py     # PDF load + retrieval
-├── data/chats/          # persisted sessions (gitignored)
-├── knowledge/           # PDF knowledge base (gitignored — local only)
+│   ├── main.py              # FastAPI routes
+│   ├── llm.py               # Gemini client
+│   ├── storage.py           # chat file I/O + delete
+│   └── knowledge.py         # PDF load + retrieval
+├── data/chats/              # persisted sessions (gitignored)
+├── knowledge/               # PDF knowledge base (gitignored)
 │   └── The Wilmington Coup of 1898.pdf   # sample; replaceable
-├── .env                 # GEMINI_API_KEY (gitignored)
-├── .env.example         # GEMINI_API_KEY placeholder
-└── README.md            # quick pointer to docs/setup.md
+├── .env                     # GEMINI_API_KEY (gitignored)
+├── .env.example
+└── README.md
 ```
 
 ---
@@ -237,12 +241,13 @@ ChatBot/
 
 ## Suggested Demo Script (for your friend)
 
-1. Open app → see US-themed landing/chat
+1. Open app → see US-themed header with historical images
 2. Ask a general question: *"What caused the American Civil War?"*
-3. Ask something from his PDF: *[topic only in his material]*
-4. Start a **new chat**, show old one is saved
-5. Use **mic** to ask a question, hear spoken reply
+3. Ask something from the PDF: *"What happened in the Wilmington Coup of 1898?"*
+4. Start a **new chat**, show old one is saved in the sidebar
+5. Click the **mic icon**, record a question, send it, click **Speak** on the reply
 6. Reload page — chats and audio still there
+7. Delete an old chat from the sidebar (trash icon → confirm)
 
 ---
 
