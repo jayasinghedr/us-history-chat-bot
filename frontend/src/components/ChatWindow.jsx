@@ -1,13 +1,17 @@
 import { useEffect, useRef, useState } from "react";
+import { HiMicrophone, HiPaperAirplane } from "react-icons/hi2";
 import MessageBubble from "./MessageBubble";
 import VoiceControls from "./VoiceControls";
 import { saveChatMessages, sendChat, uploadAudio } from "../api/client";
+import { isVoiceInputSupported } from "../utils/speech";
 
 export default function ChatWindow({ chatId, messages, onMessagesChange, onChatSaved }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [voiceOpen, setVoiceOpen] = useState(false);
   const messagesRef = useRef(null);
+  const voiceSupported = isVoiceInputSupported();
 
   useEffect(() => {
     const container = messagesRef.current;
@@ -56,6 +60,10 @@ export default function ChatWindow({ chatId, messages, onMessagesChange, onChatS
     await sendUserMessage(text);
   }
 
+  function toggleVoice() {
+    setVoiceOpen((open) => !open);
+  }
+
   return (
     <div className="chat-window">
       <div className="messages" ref={messagesRef}>
@@ -87,7 +95,12 @@ export default function ChatWindow({ chatId, messages, onMessagesChange, onChatS
       {error && <div className="error-banner">{error}</div>}
 
       <div className="chat-composer">
-        <VoiceControls disabled={loading} onSend={sendUserMessage} />
+        <VoiceControls
+          visible={voiceOpen}
+          disabled={loading}
+          onSend={sendUserMessage}
+          onDismiss={() => setVoiceOpen(false)}
+        />
 
         <form className="input-form" onSubmit={handleSubmit}>
           <input
@@ -98,8 +111,27 @@ export default function ChatWindow({ chatId, messages, onMessagesChange, onChatS
             disabled={loading}
             autoFocus
           />
-          <button type="submit" disabled={loading || !input.trim()}>
-            Send
+          {voiceSupported && (
+            <button
+              type="button"
+              className={`composer-btn composer-btn-mic${voiceOpen ? " active" : ""}`}
+              onClick={toggleVoice}
+              disabled={loading}
+              title={voiceOpen ? "Hide voice input" : "Voice input"}
+              aria-label={voiceOpen ? "Hide voice input" : "Voice input"}
+              aria-pressed={voiceOpen}
+            >
+              <HiMicrophone size={22} />
+            </button>
+          )}
+          <button
+            type="submit"
+            className="composer-btn composer-btn-send"
+            disabled={loading || !input.trim()}
+            title="Send message"
+            aria-label="Send message"
+          >
+            <HiPaperAirplane size={22} />
           </button>
         </form>
       </div>

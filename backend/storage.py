@@ -1,5 +1,6 @@
 import json
 import re
+import shutil
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -162,3 +163,10 @@ def get_audio_path(chat_id: str, filename: str) -> Path:
     if not path.exists():
         raise FileNotFoundError(f"Audio file {filename} not found.")
     return path
+
+
+def delete_chat(chat_id: str) -> None:
+    chat_dir = _chat_path(chat_id)
+    if not chat_dir.exists():
+        raise FileNotFoundError(f"Chat {chat_id} not found.")
+    shutil.rmtree(chat_dir)

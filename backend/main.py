@@ -6,7 +6,15 @@ from pydantic import BaseModel, Field
 from config import GEMINI_MODEL
 from knowledge import get_status, load_knowledge_base, retrieve_relevant_chunks
 from llm import chat
-from storage import create_chat_id, get_audio_path, get_chat, list_chats, save_audio, save_messages
+from storage import (
+    create_chat_id,
+    delete_chat,
+    get_audio_path,
+    get_chat,
+    list_chats,
+    save_audio,
+    save_messages,
+)
 
 app = FastAPI(title="US History Chatbot API")
 
@@ -128,6 +136,17 @@ def list_chats_endpoint():
 def get_chat_endpoint(chat_id: str):
     try:
         return get_chat(chat_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.delete("/api/chats/{chat_id}")
+def delete_chat_endpoint(chat_id: str):
+    try:
+        delete_chat(chat_id)
+        return {"ok": True}
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except FileNotFoundError as exc:

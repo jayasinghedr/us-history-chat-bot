@@ -1,11 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  HiMicrophone,
+  HiPaperAirplane,
+  HiStop,
+  HiTrash,
+} from "react-icons/hi2";
+import {
   createSpeechRecognition,
-  isMediaRecorderSupported,
-  isSpeechRecognitionSupported,
+  isVoiceInputSupported,
 } from "../utils/speech";
 
-export default function VoiceControls({ disabled, onSend }) {
+export default function VoiceControls({ disabled, visible, onSend, onDismiss }) {
   const [status, setStatus] = useState("idle");
   const [transcript, setTranscript] = useState("");
   const [error, setError] = useState("");
@@ -16,14 +21,19 @@ export default function VoiceControls({ disabled, onSend }) {
   const recognitionRef = useRef(null);
   const audioBlobRef = useRef(null);
 
-  const supported =
-    isSpeechRecognitionSupported() && isMediaRecorderSupported();
+  const supported = isVoiceInputSupported();
 
   useEffect(() => {
     return () => {
       stopRecordingInternal();
     };
   }, []);
+
+  useEffect(() => {
+    if (!visible) {
+      resetRecording();
+    }
+  }, [visible]);
 
   function stopStream() {
     if (streamRef.current) {
@@ -51,6 +61,15 @@ export default function VoiceControls({ disabled, onSend }) {
     stopStream();
   }
 
+  function resetRecording() {
+    stopRecordingInternal();
+    setTranscript("");
+    audioBlobRef.current = null;
+    chunksRef.current = [];
+    setError("");
+    setStatus("idle");
+  }
+
   async function handleStart() {
     if (!supported || disabled) return;
 
@@ -75,7 +94,11 @@ export default function VoiceControls({ disabled, onSend }) {
       };
 
       recognition.onerror = (event) => {
-        setError(event.error === "not-allowed" ? "Microphone permission denied." : "Speech recognition error.");
+        setError(
+          event.error === "not-allowed"
+            ? "Microphone permission denied."
+            : "Speech recognition error."
+        );
         setStatus("idle");
         stopRecordingInternal();
       };
@@ -135,12 +158,7 @@ export default function VoiceControls({ disabled, onSend }) {
   }
 
   function handleDelete() {
-    stopRecordingInternal();
-    setTranscript("");
-    audioBlobRef.current = null;
-    chunksRef.current = [];
-    setError("");
-    setStatus("idle");
+    resetRecording();
   }
 
   async function handleSend() {
@@ -148,16 +166,13 @@ export default function VoiceControls({ disabled, onSend }) {
     if (!text || disabled) return;
 
     const blob = audioBlobRef.current;
-    handleDelete();
+    resetRecording();
     await onSend(text, blob);
+    onDismiss?.();
   }
 
-  if (!supported) {
-    return (
-      <div className="voice-controls voice-unsupported">
-        Voice input requires Chrome or Edge.
-      </div>
-    );
+  if (!supported || !visible) {
+    return null;
   }
 
   return (
@@ -168,42 +183,50 @@ export default function VoiceControls({ disabled, onSend }) {
           className="voice-btn"
           onClick={handleStart}
           disabled={disabled || status === "recording"}
+          title="Start recording"
+          aria-label="Start recording"
         >
-          Start
+          <HiMicrophone size={20} />
         </button>
         <button
           type="button"
           className="voice-btn"
           onClick={handleStop}
           disabled={disabled || status !== "recording"}
+          title="Stop recording"
+          aria-label="Stop recording"
         >
-          Stop
+          <HiStop size={20} />
         </button>
         <button
           type="button"
           className="voice-btn voice-btn-secondary"
           onClick={handleDelete}
           disabled={disabled || status === "idle"}
+          title="Delete recording"
+          aria-label="Delete recording"
         >
-          Delete
+          <HiTrash size={20} />
         </button>
         <button
           type="button"
           className="voice-btn voice-btn-send"
           onClick={handleSend}
           disabled={disabled || !transcript.trim() || status === "recording"}
+          title="Send voice message"
+          aria-label="Send voice message"
         >
-          Send
+          <HiPaperAirplane size={20} />
         </button>
       </div>
 
       {status === "recording" && (
-        <p className="voice-status recording-indicator">Recording… click Stop when done.</p>
+        <p className="voice-status recording-indicator">Recording… tap stop when done.</p>
       )}
 
       {transcript && status !== "recording" && (
         <div className="voice-transcript">
-          <span className="voice-transcript-label">Transcription:</span>
+          <span className="voice-transcript-label">Transcription</span>
           <p>{transcript}</p>
         </div>
       )}

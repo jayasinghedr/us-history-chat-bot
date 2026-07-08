@@ -1,11 +1,12 @@
-import { speakText } from "../utils/speech";
+import ReactMarkdown from "react-markdown";
+import { speakText, stripMarkdown } from "../utils/speech";
 
 export default function MessageBubble({ role, content, audioFile, chatId }) {
   const isUser = role === "user";
 
   function handleSpeak() {
     try {
-      speakText(content);
+      speakText(stripMarkdown(content));
     } catch (err) {
       alert(err.message);
     }
@@ -49,7 +50,13 @@ export default function MessageBubble({ role, content, audioFile, chatId }) {
             )}
           </div>
         </div>
-        <p>{content}</p>
+        {isUser ? (
+          <p>{content}</p>
+        ) : (
+          <div className="message-content">
+            <ReactMarkdown>{content}</ReactMarkdown>
+          </div>
+        )}
       </div>
     </div>
   );

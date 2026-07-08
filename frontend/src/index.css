@@ -11,9 +11,14 @@ body,
   overflow: hidden;
 }
 
+html {
+  font-size: 18px;
+}
+
 body {
   margin: 0;
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: 1rem;
   background: linear-gradient(135deg, #eef2f7 0%, #f8fafc 45%, #eef2f7 100%);
   color: #1a1a2e;
 }

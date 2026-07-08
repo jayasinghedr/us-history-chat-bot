@@ -1,3 +1,11 @@
+export function stripMarkdown(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/\*(.+?)\*/g, "$1")
+    .replace(/`(.+?)`/g, "$1")
+    .replace(/\[(.+?)\]\(.+?\)/g, "$1");
+}
+
 export function speakText(text) {
   if (!window.speechSynthesis) {
     throw new Error("Text-to-speech is not supported in this browser.");
@@ -23,6 +31,10 @@ export function isSpeechRecognitionSupported() {
 
 export function isMediaRecorderSupported() {
   return !!(navigator.mediaDevices && window.MediaRecorder);
+}
+
+export function isVoiceInputSupported() {
+  return isSpeechRecognitionSupported() && isMediaRecorderSupported();
 }
 
 export function createSpeechRecognition() {

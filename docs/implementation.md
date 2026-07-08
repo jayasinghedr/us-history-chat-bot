@@ -185,7 +185,7 @@ data/chats/
 
 | Feature | Status |
 |---------|--------|
-| Delete chat | Not planned (out of scope) |
+| Delete chat | **Done** — trash icon in sidebar; removes chat + audio from disk |
 
 **All planned demo phases (1–5) are implemented.**
 
@@ -592,8 +592,6 @@ Open http://localhost:5173
 
 All five planned demo phases are implemented. Optional future enhancements (not in scope):
 
-- Delete chat button
-- Dark mode
 - Replace gallery SVG placeholders with Wikimedia photo thumbnails
 
 See [plan.md](./plan.md) for the full project history.

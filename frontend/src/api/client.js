@@ -56,6 +56,14 @@ export async function getChat(chatId) {
   return response.json();
 }
 
+export async function deleteChat(chatId) {
+  const response = await fetchWithTimeout(`${API_BASE}/api/chats/${chatId}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
+}
+
 export async function saveChatMessages(chatId, messages) {
   const response = await fetchWithTimeout(`${API_BASE}/api/chats/${chatId}/messages`, {
     method: "POST",
