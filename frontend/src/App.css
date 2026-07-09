@@ -3,22 +3,42 @@
   overflow: hidden;
 }
 
+:root {
+  /* Panel transparency — adjust in one place for header, sidebar, and chat */
+  --panel-bg: rgba(255, 255, 255, 0.68);
+  --panel-border: rgba(255, 255, 255, 0.45);
+  --panel-shadow: 0 2px 16px rgba(0, 0, 0, 0.12);
+  --panel-blur: blur(10px);
+  --panel-hover-bg: rgba(255, 255, 255, 0.38);
+  --panel-active-bg: rgba(255, 255, 255, 0.48);
+}
+
+.app-header,
+.chat-list,
+.chat-window {
+  background: var(--panel-bg);
+  backdrop-filter: var(--panel-blur);
+  -webkit-backdrop-filter: var(--panel-blur);
+  border: 1px solid var(--panel-border);
+  box-shadow: var(--panel-shadow);
+}
+
 .app {
   position: relative;
   z-index: 1;
-  max-width: 1100px;
+  max-width: 1320px;
   height: 100%;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  padding: 1rem 1rem 0.75rem;
+  padding: 1rem 1.25rem 0.75rem;
   overflow: hidden;
 }
 
 .loading-screen {
   align-items: center;
   justify-content: center;
-  color: #5a6a7a;
+  color: #f3f4f6;
 }
 
 .app-header {
@@ -29,26 +49,39 @@
   margin-bottom: 0.85rem;
   padding: 1.35rem 1.5rem 1.15rem;
   border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(30, 58, 95, 0.08);
-  border: 1px solid rgba(30, 58, 95, 0.08);
-  background:
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.82)),
-    url("/images/us-flag.svg") center center / cover no-repeat;
 }
 
 .header-brand {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto;
   align-items: center;
-  justify-content: center;
-  gap: 2rem;
+  width: 100%;
+  min-height: 120px;
 }
 
 .header-titles {
+  grid-column: 1 / -1;
+  grid-row: 1;
   text-align: center;
   min-width: 0;
+  padding: 0 155px;
+}
+
+.header-logo {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  height: 130px;
+  width: auto;
+  max-width: 145px;
+  margin-right: 1.25rem;
+  object-fit: contain;
+  z-index: 1;
 }
 
 .history-thumb {
+  /* Hidden for now — assets kept in HistoryGallery.jsx */
+  display: none;
   width: 160px;
   height: 120px;
   flex-shrink: 0;
@@ -60,15 +93,16 @@
 
 .app-header h1 {
   margin: 0;
-  font-size: 2.25rem;
+  font-size: 2.1rem;
+  line-height: 1.25;
   color: #1e3a5f;
   letter-spacing: 0.01em;
 }
 
 .app-tagline {
-  margin: 0.4rem 0 0;
+  margin: 0.45rem 0 0;
   color: #5a6a7a;
-  font-size: 1.1rem;
+  font-size: 1.28rem;
 }
 
 .app-error {
@@ -93,10 +127,7 @@
   width: 260px;
   flex-shrink: 0;
   min-height: 0;
-  background: rgba(255, 255, 255, 0.94);
   border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(30, 58, 95, 0.08);
   padding: 0.75rem;
   display: flex;
   flex-direction: column;
@@ -141,11 +172,11 @@
 }
 
 .chat-list-row:hover {
-  background: #f3f4f6;
+  background: var(--panel-hover-bg);
 }
 
 .chat-list-row.active {
-  background: #eef2f7;
+  background: var(--panel-active-bg);
 }
 
 .chat-list-item {
@@ -214,10 +245,7 @@ main {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background: rgba(255, 255, 255, 0.96);
   border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(30, 58, 95, 0.08);
   overflow: hidden;
 }
 
@@ -276,7 +304,7 @@ main {
 }
 
 .message-row.assistant .message-bubble {
-  background: #eef2f7;
+  background: rgba(238, 242, 247, 0.82);
   color: #1a1a2e;
   border-bottom-left-radius: 4px;
 }
@@ -373,8 +401,8 @@ main {
 
 .chat-composer {
   flex-shrink: 0;
-  border-top: 1px solid #e5e7eb;
-  background: #fafbfc;
+  border-top: 1px solid var(--panel-border);
+  background: transparent;
   padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
@@ -394,7 +422,7 @@ main {
   border-radius: 24px;
   font-size: 1.05rem;
   outline: none;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.88);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
@@ -448,8 +476,8 @@ main {
 
 .voice-controls {
   padding: 0.75rem 1rem 0.25rem;
-  background: #f3f4f6;
-  border-bottom: 1px solid #e5e7eb;
+  background: transparent;
+  border-bottom: 1px solid var(--panel-border);
 }
 
 .voice-buttons {
@@ -555,12 +583,17 @@ main {
 }
 
 .message-action-btn {
-  padding: 0.2rem 0.5rem;
-  font-size: 0.8rem;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid rgba(0, 0, 0, 0.15);
-  border-radius: 4px;
+  border-radius: 6px;
   background: rgba(255, 255, 255, 0.6);
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .message-row.user .message-action-btn {
@@ -646,8 +679,27 @@ main {
 }
 
 @media (max-width: 768px) {
+  .app-header {
+    padding: 1rem 1rem 0.85rem;
+  }
+
   .header-brand {
+    min-height: auto;
+    grid-template-columns: 1fr;
     gap: 0.75rem;
+  }
+
+  .header-titles {
+    grid-column: 1;
+    padding: 0;
+  }
+
+  .header-logo {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: center;
+    height: 72px;
+    max-width: 96px;
   }
 
   .history-thumb {
@@ -660,7 +712,7 @@ main {
   }
 
   .app-tagline {
-    font-size: 0.95rem;
+    font-size: 1.05rem;
   }
 
   .app-layout {

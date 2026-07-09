@@ -107,7 +107,7 @@ export default function ChatWindow({ chatId, messages, onMessagesChange, onChatS
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask a question about US history…"
+            placeholder="Type your message…"
             disabled={loading}
             autoFocus
           />

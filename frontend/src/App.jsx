@@ -137,8 +137,8 @@ export default function App() {
       <div className="app">
         <header className="app-header">
           <HistoryGallery
-            title="US History Chat"
-            tagline="Your AI guide to American history"
+            title="Freedom 250: Celebrating America’s 250th Independence"
+            tagline="Team 3: U.S. Science & Technology Entrepreneurship"
           />
         </header>
 

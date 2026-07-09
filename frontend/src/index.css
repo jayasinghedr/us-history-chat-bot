@@ -15,10 +15,23 @@ html {
   font-size: 18px;
 }
 
+:root {
+  /* Fine-tune the full-page flag GIF here */
+  --flag-bg-scale-x: 160%;
+  --flag-bg-scale-y: 160%;
+  --flag-bg-pos-x: 30%;
+  --flag-bg-pos-y: 50%;
+}
+
 body {
   margin: 0;
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
   font-size: 1rem;
-  background: linear-gradient(135deg, #eef2f7 0%, #f8fafc 45%, #eef2f7 100%);
   color: #1a1a2e;
+  background-color: #000;
+  background-image: url("/images/us-flag-waving.gif");
+  background-position: var(--flag-bg-pos-x) var(--flag-bg-pos-y);
+  background-size: var(--flag-bg-scale-x) var(--flag-bg-scale-y);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }

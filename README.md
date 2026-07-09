@@ -1,6 +1,6 @@
-# US History Chatbot
+# Freedom 250
 
-A local demo chatbot focused on US history — text and voice chat, saved conversations, PDF knowledge base, and a polished demo UI.
+A local demo chatbot focused on US history — text and voice chat, saved conversations, PDF knowledge base, and Freedom 250 demo branding.
 
 ## Features
 
@@ -9,9 +9,9 @@ A local demo chatbot focused on US history — text and voice chat, saved conver
 - **ChatGPT-style layout** — scrollable message history, input bar fixed at bottom
 - **Markdown replies** — bold, lists, and other formatting rendered in assistant messages
 - **Voice input** — mic button reveals icon-based controls (record, stop, delete, send)
-- **Voice output** — Speak (TTS) on assistant messages; Play on user recordings
+- **Voice output** — play/stop icon on assistant messages (browser TTS); play/stop on user recordings
 - **PDF knowledge base** — answers blend PDF content with general US history
-- **Demo visuals** — US flag header background, historical images flanking the title
+- **Demo visuals** — animated flag background, Freedom 250 header + logo
 - **Local storage** — chats and audio under `data/chats/`
 
 ## Documentation

@@ -1,4 +1,4 @@
-# US History Chatbot — Setup & Usage Guide
+# Freedom 250 — Setup & Usage Guide
 
 Complete instructions for installing, running, and using the app on **your machine** or **your friend's laptop** (Windows). Read this top-to-bottom the first time; use [Quick start](#quick-start-after-initial-setup) for daily use.
 
@@ -352,13 +352,12 @@ Voice input requires **Chrome or Edge** and microphone permission.
 5. Click the **send icon** in the voice bar to submit (or **trash icon** to discard)
 6. Click the **microphone icon** again to hide the voice bar
 
-Your voice recording is saved with the message. After sending, click **Play** on your message bubble to replay it.
+Your voice recording is saved with the message. Use the **play icon** on your message to replay it (icon switches to **stop** while playing).
 
 ### Voice output (text-to-speech)
 
-- Assistant replies are **text only** on screen
-- Click **Speak** on a Historian message to hear it read aloud (browser text-to-speech)
-- No extra API key needed for TTS
+- Click the **play icon** on a Historian message to hear it read aloud
+- Icon switches to **stop** while speaking — click to cancel
 
 ### PDF knowledge base
 
@@ -379,7 +378,7 @@ General questions still work without the PDF:
 1. Ask a general US history question
 2. Ask something specific to the PDF (if loaded)
 3. Start a **new chat** — show the previous one is still in the sidebar
-4. Use **voice input** to ask a question, then **Speak** on the reply
+4. Use **voice input** to ask a question, then use the **play icon** on the reply
 5. Refresh the page — chats and recordings persist
 6. Delete an old chat from the sidebar
 
@@ -396,7 +395,7 @@ General questions still work without the PDF:
 | API key works | Send a message and receive an AI reply |
 | Chats persist | Refresh the page — sidebar still shows saved chats |
 | PDF loaded (optional) | http://localhost:8000/api/knowledge/status shows `loaded: true` |
-| Voice (optional) | Mic icon → record → stop → send → Play on user message |
+| Voice (optional) | Mic icon → record → stop → send → play icon on user message |
 | Internet | Gemini calls fail offline — ensure Wi‑Fi is on |
 
 ### Backend health check
@@ -508,9 +507,9 @@ Another app is using the port. Either close that app or change the port:
 - Click the **mic icon** next to send to open the voice bar first
 - Microphone works on **localhost** without HTTPS
 
-### Voice output (Speak button) not working
+### Voice output not working
 
-- Uses browser built-in speech synthesis
+- Uses browser built-in speech synthesis — click the **play icon** on a Historian message
 - Try Chrome or Edge
 - Check system volume and that no other app is using audio output
 
@@ -585,7 +584,7 @@ Use this when setting up a fresh laptop:
 - [ ] (Optional) Copy PDF into `knowledge/` folder
 - [ ] Start backend (`uvicorn`) and frontend (`npm run dev`)
 - [ ] Open http://localhost:5173 and send a test message
-- [ ] Test voice: mic icon → record → stop → send; Speak on reply; Play on user message
+- [ ] Test voice: mic icon → record → stop → send; play/stop icons on messages
 - [ ] Test delete: trash icon on a chat → confirm in modal
 - [ ] (Optional) Verify PDF at http://localhost:8000/api/knowledge/status
 

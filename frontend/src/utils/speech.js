@@ -1,3 +1,24 @@
+let activeStop = null;
+
+export function stopActivePlayback() {
+  if (activeStop) {
+    const stop = activeStop;
+    activeStop = null;
+    stop();
+  }
+}
+
+function setActivePlayback(stopFn) {
+  stopActivePlayback();
+  activeStop = stopFn;
+}
+
+export function clearActivePlayback(stopFn) {
+  if (activeStop === stopFn) {
+    activeStop = null;
+  }
+}
+
 export function stripMarkdown(text) {
   return text
     .replace(/\*\*(.+?)\*\*/g, "$1")
@@ -6,23 +27,54 @@ export function stripMarkdown(text) {
     .replace(/\[(.+?)\]\(.+?\)/g, "$1");
 }
 
-export function speakText(text) {
+export function speakText(text, { onStart, onEnd } = {}) {
   if (!window.speechSynthesis) {
     throw new Error("Text-to-speech is not supported in this browser.");
   }
 
-  window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = "en-US";
   utterance.rate = 1;
+
+  const stop = () => {
+    window.speechSynthesis.cancel();
+    clearActivePlayback(stop);
+    onEnd?.();
+  };
+
+  utterance.onend = stop;
+  utterance.onerror = stop;
+
+  setActivePlayback(stop);
+  onStart?.();
   window.speechSynthesis.speak(utterance);
   return utterance;
 }
 
 export function stopSpeaking() {
-  if (window.speechSynthesis) {
-    window.speechSynthesis.cancel();
-  }
+  stopActivePlayback();
+}
+
+export function playRecording(url, { onStart, onEnd } = {}) {
+  const audio = new Audio(url);
+
+  const stop = () => {
+    audio.pause();
+    audio.currentTime = 0;
+    clearActivePlayback(stop);
+    onEnd?.();
+  };
+
+  audio.onended = stop;
+  audio.onerror = stop;
+
+  setActivePlayback(stop);
+  onStart?.();
+
+  return audio.play().catch((err) => {
+    stop();
+    throw err;
+  });
 }
 
 export function isSpeechRecognitionSupported() {

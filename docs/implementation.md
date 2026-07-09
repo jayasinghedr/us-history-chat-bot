@@ -1,8 +1,8 @@
 # Implementation Status
 
-Technical reference for the US History Chatbot demo — what has been built, how it works, and where to find things in the codebase.
+Technical reference for the **Freedom 250** US history chatbot demo — what has been built, how it works, and where to find things in the codebase.
 
-> **Last updated:** 2026-07-09 (all phases complete + post-phase enhancements)  
+> **Last updated:** 2026-07-09  
 > **Related docs:** [setup.md](./setup.md) — install and usage · [plan.md](./plan.md) — requirements and phased plan
 
 ---
@@ -15,7 +15,7 @@ Technical reference for the US History Chatbot demo — what has been built, how
 | **Phase 2** | **Done** | Multi-chat and local file persistence |
 | **Phase 3** | **Done** | Voice input/output with icon-based controls — **verified** |
 | **Phase 4** | **Done** | PDF knowledge base — load, chunk, retrieve, inject into prompts — **verified** |
-| **Phase 5** | **Done** | Visual polish — header branding, demo-ready layout — **verified** |
+| **Phase 5** | **Done** | Visual polish — Freedom 250 branding, animated flag background — **verified** |
 
 ### Post-phase enhancements
 
@@ -25,28 +25,21 @@ Technical reference for the US History Chatbot demo — what has been built, how
 | Markdown rendering | **Done** — assistant replies rendered with `react-markdown` |
 | Icon-based composer | **Done** — mic toggle, send icon (`react-icons`) |
 | ChatGPT-style layout | **Done** — scrollable messages, fixed input bar at bottom |
+| Play/stop message audio | **Done** — play/stop icons on user recordings and TTS |
+| Freedom 250 branding | **Done** — title, logo, waving flag full-page background |
+| Unified panel transparency | **Done** — shared fade/blur on header, sidebar, and chat |
 
 **All planned demo phases and core enhancements are implemented.**
 
 ---
 
-## Phase 5 — Visual Polish
+## Current UI (Freedom 250)
 
-### User-facing features
-
-- **Header card** with US flag as background (subtle white overlay for readability)
-- **Historical images** flanking the title — Declaration of Independence and Abraham Lincoln
-- **Polished panels** — semi-transparent sidebar and chat window on gradient background
-- **Larger typography** — increased base font size and header scale
-- **Responsive layout** — stacked sidebar on narrow screens
-
-### Assets (`frontend/public/images/`)
-
-| File | Description |
-|------|-------------|
-| `us-flag.svg` | US flag (Wikimedia Commons) |
-| `declaration.jpg` | John Trumbull, *Declaration of Independence* |
-| `lincoln.jpg` | Abraham Lincoln portrait |
+- **Title:** Freedom 250 · **Tagline:** Team 3: US Science & Technology Entrepreneurship (`App.jsx`)
+- **Background:** full-page `us-flag-waving.gif` (`index.css` — scale/position CSS variables)
+- **Header:** semi-transparent panel; Freedom 250 logo on the right (`freedom-250-logo.png`)
+- **Panels:** header, sidebar, and chat share the same transparency + blur (`App.css` — `--panel-bg`)
+- Historical gallery images remain in code but are hidden via CSS
 
 ---
 
@@ -55,7 +48,7 @@ Technical reference for the US History Chatbot demo — what has been built, how
 ### User-facing features
 
 - Answers **blend** general US history with PDF content when relevant
-- No knowledge-base badge in the UI (backend still loads and uses the PDF)
+- No knowledge-base badge in the UI (verify via `GET /api/knowledge/status`)
 
 ### Backend features
 
@@ -70,11 +63,10 @@ Technical reference for the US History Chatbot demo — what has been built, how
 
 - `knowledge/The Wilmington Coup of 1898.pdf` — 4 chunks loaded
 
-### Verified
+### Recommended PDF size for demo
 
-- PDF-specific questions answered using knowledge base material
-- General US history questions still work (blend mode)
-- Replace PDF + `POST /api/knowledge/reload` reloads without code changes
+- **1–15 pages**, text-based (not scanned), single focused topic
+- Larger PDFs load but only top matching chunks are used per question
 
 ---
 
@@ -84,13 +76,11 @@ Technical reference for the US History Chatbot demo — what has been built, how
 
 - **Mic button** next to send — toggles voice control bar (hidden by default)
 - **Icon controls** in voice bar: mic (start), stop, trash (delete), send
-- **Start** — records microphone audio + live speech-to-text
-- **Stop** — ends recording; transcription shown for review
-- **Delete** — discards recording and transcription
-- **Send** — submits transcribed text (with audio saved if recorded)
-- **Play** on user messages — replays saved voice recording
-- **Speak** on assistant messages — browser text-to-speech (manual)
-- Assistant replies remain **text only** (no assistant audio files)
+- Records microphone audio + live speech-to-text; user reviews then sends
+- **Play/stop icon** on user messages — replays saved `.webm` recording
+- **Play/stop icon** on assistant messages — browser text-to-speech (manual)
+- Only one message plays at a time; starting another stops the current
+- Assistant replies remain **text only** on disk (no assistant audio files)
 
 ### Backend features
 
@@ -107,7 +97,7 @@ Technical reference for the US History Chatbot demo — what has been built, how
 - **+ New Chat** — starts a fresh conversation
 - **Sidebar** — lists saved chats, sorted by most recently updated
 - **Switch chats** — click a title to load history
-- **Delete chat** — trash icon on hover → confirmation modal → removes chat + audio from disk
+- **Delete chat** — trash icon on hover → styled confirmation modal → removes chat + audio from disk
 - **Auto-save** — after each exchange
 - **Persist on refresh** — reloading restores saved chats
 - **Auto-titled chats** — title from first user message (truncated at 60 chars)
@@ -116,7 +106,7 @@ Technical reference for the US History Chatbot demo — what has been built, how
 
 - Local file storage under `data/chats/{chatId}/`
 - UUID validation on chat IDs (prevents path traversal)
-- `DELETE /api/chats/{id}` — removes entire chat directory
+- `DELETE /api/chats/{id}` — removes entire chat directory (`shutil.rmtree`)
 - 15-second request timeout — shows error instead of infinite "Loading chats…"
 
 ### Storage layout
@@ -191,23 +181,25 @@ ChatBot/
 ├── data/chats/           # Saved conversations (gitignored)
 ├── knowledge/            # PDF knowledge base (gitignored)
 ├── frontend/
-│   ├── public/images/    # Flag + historical images
+│   ├── public/images/    # Flag GIF, logo, gallery assets
+│   ├── index.html        # Browser tab title
 │   └── src/
-│       ├── App.jsx               # Layout, chat state, delete modal
-│       ├── App.css
+│       ├── App.jsx               # Layout, branding props, delete modal
+│       ├── App.css               # Panel transparency, header, chat UI
+│       ├── index.css             # Full-page flag background vars
 │       ├── api/client.js         # API client
-│       ├── utils/speech.js       # Speech recognition + TTS
+│       ├── utils/speech.js       # Speech, TTS, playback coordination
 │       └── components/
 │           ├── ChatWindow.jsx    # Messages, input, voice toggle
 │           ├── ChatList.jsx      # Sidebar + delete button
 │           ├── VoiceControls.jsx # Icon-based voice bar
-│           ├── MessageBubble.jsx # Markdown + Play/Speak
-│           ├── HistoryGallery.jsx# Header images + title
+│           ├── MessageBubble.jsx # Markdown + play/stop icons
+│           ├── HistoryGallery.jsx# Title, tagline, logo, gallery
 │           └── ConfirmModal.jsx  # Delete confirmation
 ├── docs/
-│   ├── setup.md          # Install, run, usage guide
-│   ├── plan.md           # Requirements and phased plan
-│   └── implementation.md # This file
+│   ├── setup.md
+│   ├── plan.md
+│   └── implementation.md
 ├── .env                  # API key (gitignored)
 ├── .env.example
 └── README.md
@@ -233,18 +225,6 @@ ChatBot/
 
 **Swagger UI:** http://localhost:8000/docs
 
-### `POST /api/chat`
-
-Send conversation history; receive next assistant reply.
-
-```json
-{
-  "messages": [
-    { "role": "user", "content": "Who was the first US president?" }
-  ]
-}
-```
-
 ### `DELETE /api/chats/{id}`
 
 Deletes `data/chats/{id}/` including `meta.json`, `messages.json`, and `audio/`.
@@ -257,15 +237,21 @@ Deletes `data/chats/{id}/` including `meta.json`, `messages.json`, and `audio/`.
 
 | Component | Purpose |
 |-----------|---------|
-| `App.jsx` | Header, sidebar, active chat routing, delete modal |
+| `App.jsx` | Branding props, sidebar, active chat routing, delete modal |
 | `ChatWindow.jsx` | Messages, scroll area, input bar, mic/send icons |
 | `ChatList.jsx` | Saved chats, new chat, delete trash icon |
 | `VoiceControls.jsx` | Collapsible voice bar with icon buttons |
-| `MessageBubble.jsx` | Markdown rendering, Play/Speak actions |
-| `HistoryGallery.jsx` | Header images flanking title |
+| `MessageBubble.jsx` | Markdown rendering; play/stop for recording and TTS |
+| `HistoryGallery.jsx` | Title, tagline, Freedom 250 logo; gallery images (hidden) |
 | `ConfirmModal.jsx` | Styled delete confirmation dialog |
 | `api/client.js` | All API calls with 15s timeout |
-| `utils/speech.js` | Speech recognition, TTS, markdown strip for Speak |
+| `utils/speech.js` | Speech recognition, TTS, `playRecording`, shared stop/playback |
+
+### Playback coordination (`utils/speech.js`)
+
+- `stopActivePlayback()` — stops whichever message is currently playing (recording or TTS)
+- `playRecording(url, { onStart, onEnd })` — plays user `.webm` with callbacks
+- `speakText(text, { onStart, onEnd })` — TTS with callbacks; strips markdown before speaking
 
 ---
 
@@ -301,7 +287,7 @@ Get a free key: https://aistudio.google.com/apikey
 |---------|---------|
 | `react`, `react-dom` | UI framework |
 | `react-markdown` | Render assistant markdown replies |
-| `react-icons` | Mic, send, stop, trash icons |
+| `react-icons` | UI icons (mic, send, play, stop, trash) |
 | `vite` | Dev server and build |
 
 ---
@@ -334,16 +320,19 @@ Open http://localhost:5173 in Chrome or Edge.
 | Internet required | Gemini API calls need network |
 | Gemini 429 errors | Free tier rate limits; wait and retry |
 | Voice features | Require Chrome or Edge; allow microphone permission |
+| Flag GIF padding | Tune `--flag-bg-scale-*` and `--flag-bg-pos-*` in `index.css` |
+| Logo black background | `freedom-250-logo.png` has opaque black; transparent PNG would blend better |
 | `google.generativeai` deprecation | Package shows deprecation notice; still works for demo |
 
 ---
 
 ## Project Complete
 
-All five planned phases are implemented, plus delete chat, markdown rendering, icon-based voice UI, and ChatGPT-style layout.
+All five planned phases are implemented, plus Freedom 250 branding, animated flag background, delete chat, markdown rendering, icon-based voice UI, play/stop message audio, and ChatGPT-style layout.
 
 Optional future enhancements (not in scope):
 
+- Transparent logo PNG
 - Dark mode
 - Export chat to PDF/text
 
